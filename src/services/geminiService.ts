@@ -11,10 +11,10 @@ const questionSchema = {
     options: {
       type: Type.ARRAY,
       items: { type: Type.STRING },
-      description: "Exactly 4 multiple choice options"
+      description: "Exactament 4 opcions de resposta"
     },
-    correctAnswerIndex: { type: Type.INTEGER, description: "Index of the correct option (0-3)" },
-    explanation: { type: Type.STRING, description: "Brief explanation of why the answer is correct" }
+    correctAnswerIndex: { type: Type.INTEGER, description: "Índex de la resposta correcta (0-3)" },
+    explanation: { type: Type.STRING, description: "Explicació breu de la resposta correcta" }
   },
   required: ["id", "question", "options", "correctAnswerIndex", "explanation"]
 };
@@ -33,36 +33,33 @@ export async function generateQuiz(
   try {
     const langNames = { ca: "Catalan", en: "English", es: "Spanish" };
     const prompt = `
-      Based on the following document content, generate exactly ${count} multiple-choice questions for a study questionnaire in ${langNames[language]}.
+      Basant-te en el següent text, genera exactament ${count} preguntes d'opció múltiple per a un qüestionari d'estudi en ${langNames[language]}.
       
-      CRITICAL REQUIREMENTS:
-      1. Each question must have exactly 4 options.
-      2. The correct answer must be clearly identified by its index (0-3).
-      3. Provide a helpful explanation for the correct answer.
-      4. DO NOT repeat or use questions similar to these previously seen questions:
-         ${previousQuestions.length > 0 ? previousQuestions.join("\n") : "None"}
-      5. Ensure the questions cover different parts of the document to ensure thorough study.
-      6. The output must be a JSON array of question objects.
-      7. ALL generated text (questions, options, explanations) MUST be in ${langNames[language]}.
-
-      Document Content:
-      ${text.slice(0, 30000)} // Limiting text length for token safety
+      REQUISITS CRÍTICS:
+      1. Cada pregunta ha de tenir exactament 4 opcions.
+      2. La resposta correcta ha d'estar identificada pel seu índex (0-3).
+      3. Proporciona una explicació útil.
+      4. NO repeteixis preguntes similars a aquestes: ${previousQuestions.length > 0 ? previousQuestions.join("\n") : "Cap"}.
+      5. L'idioma de SORTIDA (preguntes, opcions i explicacions) ha de ser EXCLUSIVAMENT ${langNames[language]}.
+      
+      Contingut del Document:
+      ${text.slice(0, 25000)}
     `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: {
+    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" }); // Actualitzat a versió estable
+    const response = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
         responseMimeType: "application/json",
-        responseSchema: quizSchema,
+        responseSchema: quizSchema as any,
         temperature: 0.7,
       },
     });
 
-    const result = JSON.parse(response.text || "[]") as Question[];
+    const result = JSON.parse(response.response.text() || "[]") as Question[];
     return result;
   } catch (error) {
     console.error("Error generating quiz:", error);
-    throw new Error("Failed to generate questions. Please try again.");
+    throw new Error("No s'han pogut generar les preguntes. Revisa la teva API Key.");
   }
 }
