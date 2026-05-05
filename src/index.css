@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@600;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Crimson Pro", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-natural-bg: #F9F8F3;
+  --color-natural-text: #4A4A3F;
+  --color-natural-accent: #8C927D;
+  --color-natural-border: #E6E4D9;
+  --color-natural-heading: #2D2D24;
+  --color-natural-muted: #A19F8E;
+  --color-natural-surface: #F1F2ED;
+}
+
+@layer base {
+  body {
+    @apply bg-natural-bg text-natural-text font-sans;
+  }
+}
